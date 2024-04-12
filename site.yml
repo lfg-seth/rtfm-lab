@@ -1,17 +1,43 @@
 ---
-- hosts: rtfm_cluster
-  gather_facts: yes
-  become: yes
+- name: Prepare k3s nodes
+  hosts: rtfm_cluster
+  gather_facts: true
   roles:
     - role: prereq
+      become: true
     - role: download
-  
-- hosts: masters
-  become: yes
-  roles:
-    - role: k3s/master
+      become: true
 
-- hosts: workers
-  become: yes
+
+- name: Setup k3s masters
+  gather_facts: true
+  hosts: masters
+  environment: "{{ proxy_env | default({}) }}"
   roles:
-    - role: k3s/node
+    - role: k3s_master
+      become: true
+
+- name: Setup k3s workers
+  hosts: workers
+  environment: "{{ proxy_env | default({}) }}"
+  roles:
+    - role: k3s_worker
+      become: true
+
+- name: Configure k3s cluster
+  hosts: masters
+  environment: "{{ proxy_env | default({}) }}"
+  roles:
+    - role: k3s_master_post
+      become: true
+
+- name: Storing kubeconfig in the playbook directory
+  hosts: masters
+  environment: "{{ proxy_env | default({}) }}"
+  tasks:
+    - name: Copying kubeconfig from {{ hostvars[groups[group_name_master | default('masters')][0]]['ansible_hostname'] }}
+      ansible.builtin.fetch:
+        src: "{{ ansible_user_dir }}/.kube/config"
+        dest: ./kubeconfig
+        flat: true
+      when: ansible_hostname == hostvars[groups[group_name_master | default('masters')][0]]['ansible_hostname']

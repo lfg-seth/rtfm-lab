@@ -7,29 +7,53 @@ k3s_version: v1.29.3+k3s1
 # SSH Info
 ansible_ssh_user: setheth
 
-sytemd_dir: /etc/systemd/system
+systemd_dir: /etc/systemd/system
 
 # K3s
+apiserver_endpoint: "192.168.1.170"
 
-# What interface to use for flannel networking
-flannel_iface: eth0
+flannel_iface: "{{ ansible_default_ipv4.interface }}"
 
 # Password used for masters to talk to each other
-k3s_token: "read the fucking manual"
+k3s_token: "readthefuckingmanual"
+# k3s_node_ip: "{{ ansible_facts['ansible_default_ipv4']['address'] | default('no_ip_found') }}"
+k3s_node_ip: "{{ ansible_default_ipv4.address }}"
 
-
+cilium_bgp: false
 # Extra Server Args
   # --disable servieclb (We will be using metallb instead)
   # --disable traefik (we will do this with helm later on)
-extra_server_args: "--disable servicelb --disable traefik"
 
 # Extra Agent Args
   #--kubelet-arg node-status-update-frequency=5s (The standard update time is 5m, this reduces it to 5s to make lab more zippy.)
-extra_agent_args: "--kubelet-arg node-status-update-frequency=5s"
 
-kube_vip_tag_version: "v0.4.2"
+kube_vip_tag_version: "v0.7.2"
+# metallb type frr or native
+metal_lb_type: "native"
 
-metal_lb_tag_version: "v0.12.1"
+# metallb mode layer2 or bgp
+metal_lb_mode: "layer2"
+metal_lb_controller_tag_version: "v0.14.3"
+metal_lb_speaker_tag_version: "v0.14.3"
 
 # This is the range of IPs metallb will assign to services to make them acessible on the lan
 metal_lb_ip_range: "192.168.1.60-192.168.1.80"
+
+extra_args: >-
+  {{ '--flannel-iface=' + flannel_iface if calico_iface is not defined and cilium_iface is not defined else '' }}
+  --node-ip={{ k3s_node_ip }}
+
+extra_server_args: >-
+  {{ extra_args }}
+  {{ '--node-taint node-role.kubernetes.io/master=true:NoSchedule' if k3s_master_taint else '' }}
+  {% if calico_iface is defined or cilium_iface is defined %}
+  --flannel-backend=none
+  --disable-network-policy
+  --cluster-cidr={{ cluster_cidr | default('10.52.0.0/16') }}
+  {% endif %}
+  --tls-san {{ apiserver_endpoint }}
+  --disable servicelb
+  --disable traefik
+
+extra_agent_args: >-
+  {{ extra_args }}
