@@ -1,0 +1,17 @@
+---
+- hosts: rtfm_cluster
+  gather_facts: yes
+  become: yes
+  roles:
+    - role: prereq
+    - role: download
+  
+- hosts: masters
+  become: yes
+  roles:
+    - role: k3s/master
+
+- hosts: workers
+  become: yes
+  roles:
+    - role: k3s/node
