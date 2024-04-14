@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-rtfm-space
+  namespace: default
+spec:
+  secretName: grafana-rtfm-space-production-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "grafana.rtfm.space"
+  dnsNames:
+  - "grafana.rtfm.space"

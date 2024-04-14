@@ -33,7 +33,7 @@ alertmanager:
   fullnameOverride: alertmanager
   enabled: true
   ingress:
-    enabled: true
+    enabled: false
 
 grafana:
   enabled: true
@@ -48,8 +48,7 @@ grafana:
     existingSecret: grafana-admin-credentials
     userKey: admin-user
     passwordKey: admin-password
-  ingress:
-    enabled: true
+
 
 kubeApiServer:
   enabled: true
