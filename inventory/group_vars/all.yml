@@ -30,7 +30,7 @@ cilium_bgp: false
 kube_vip_tag_version: "v0.7.2"
 # metallb type frr or native
 metal_lb_type: "native"
-
+k3s_master_taint: true
 # metallb mode layer2 or bgp
 metal_lb_mode: "layer2"
 metal_lb_controller_tag_version: "v0.14.3"
@@ -54,6 +54,11 @@ extra_server_args: >-
   --tls-san {{ apiserver_endpoint }}
   --disable servicelb
   --disable traefik
+  --kube-controller-manager-arg bind-address=0.0.0.0
+  --kube-proxy-arg metrics-bind-address=0.0.0.0
+  --kube-scheduler-arg bind-address=0.0.0.0
+  --etcd-expose-metrics true
+  --kubelet-arg containerd=/run/k3s/containerd/containerd.sock
 
 extra_agent_args: >-
   {{ extra_args }}

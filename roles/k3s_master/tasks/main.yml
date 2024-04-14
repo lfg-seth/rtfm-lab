@@ -85,6 +85,10 @@
         state: stopped
       failed_when: false
 
+- name: Debug extra_server_args value
+  debug:
+    msg: "extra_server_args is {{ extra_server_args }}"
+
 - name: Copy K3s service file
   register: k3s_service
   template:
