@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stress-ng
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: stress-ng
+  template:
+    metadata:
+      labels:
+        app: stress-ng
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - stress-ng
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: stress-ng
+        image: polinux/stress-ng
+        args: ["--cpu", "4", "--io", "2", "--vm", "2", "--vm-bytes", "128M", "--timeout", "10m"]
